@@ -37,6 +37,8 @@
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
 
+  <label><input type="checkbox" id="keepProfile" checked> Keep existing Outlook profiles <strong style="color: red;">&#9888; DO NOT uncheck unless instructed</strong></label>
+
   <button id="generateBtn" disabled>Generate PowerShell Script</button>
 
   <div id="instructions">
@@ -53,6 +55,7 @@
     const generateBtn = document.getElementById('generateBtn');
     const emailInput = document.getElementById('userEmail');
     const nameInput = document.getElementById('displayName');
+    const keepProfileCheckbox = document.getElementById('keepProfile');
 
     function validateForm() {
       const isValid = emailInput.value.trim() !== '' && nameInput.value.trim() !== '';
@@ -85,23 +88,29 @@
     generateBtn.addEventListener('click', () => {
       const email = emailInput.value;
       const name = nameInput.value;
+      const keepExisting = keepProfileCheckbox.checked;
+
+      const removeProfilesLogic = keepExisting ? '' : `
+Remove-Item -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles" -Recurse -Force
+`;
 
       const psScript = `
-$profileName = \"OutlookAutodiscover\"
-$userEmail = \"${email}\"
-$displayName = \"${name}\"
+$profileName = "OutlookAutodiscover"
+$userEmail = "${email}"
+$displayName = "${name}"
 
-$regPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover\"
+${removeProfilesLogic}
+$regPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover"
 New-Item -Path $regPath -Force | Out-Null
-New-ItemProperty -Path $regPath -Name \"ZeroConfigExchange\" -Value 1 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
 
-$profPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$profileName\"
+$profPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$profileName"
 New-Item -Path $profPath -Force | Out-Null
 
-Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfile\" -Value $profileName
-Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfileName\" -Value $profileName
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfile" -Value $profileName
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
 
-Write-Host \"Profile '$profileName' set. Launch Outlook to complete Autodiscover setup.\"
+Write-Host "Profile '$profileName' set. Launch Outlook to complete Autodiscover setup."
 `;
 
       const blob = new Blob([psScript], { type: "text/plain" });
@@ -115,4 +124,3 @@ Write-Host \"Profile '$profileName' set. Launch Outlook to complete Autodiscover
   </script>
 </body>
 </html>
-
