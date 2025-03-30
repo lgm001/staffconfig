@@ -1,76 +1,63 @@
-Perfect — here's a proper `README.md` for the Git repo backing the **ID4me Outlook Profile Generator**:
-
----
-
-```markdown
 # ID4me Outlook Profile Generator
 
-A secure internal web tool for generating PowerShell scripts that preconfigure Outlook profiles for ID4me-managed users using Autodiscover.
+A secure internal-use tool to generate PowerShell scripts for Outlook profile setup using Autodiscover.
+
+
+## Features
+
+- Dropdown user selection from `users.json`
+- Email and display name autofill
+- Option to preserve existing Outlook profiles
+- PowerShell script generation for registry-based profile creation
+- Default profile name fallback to `_id4mecom` if one already exists
+- Prompts Outlook for profile selection on launch
 
 ---
 
-## 🔍 Purpose
+## Local Development
 
-This tool simplifies the setup of Outlook profiles by allowing staff to generate a PowerShell script tailored to their user account. The script sets registry keys required for Outlook's Autodiscover to function correctly.
+1. Clone the repository.
+2. Add a `users.json` file to the root directory:
 
----
-
-## 🧩 Features
-
-- User selection from a dropdown list (`users.json`)
-- Auto-filled email and display name
-- Toggle to preserve existing Outlook profiles
-- Registry-safe PowerShell generation
-- Prompts Outlook to choose profile on next launch
-
----
-
-## 🛠️ Local Development
-
-1. Clone this repository.
-2. Ensure a valid `users.json` is placed in the root directory. Example:
    ```json
    [
-     { "name": "Alice Admin", "email": "alice@id4me.com" },
-     { "name": "Bob Builder", "email": "bob@id4me.com" }
+     { "name": "Alice Smith", "email": "alice@id4me.com" },
+     { "name": "Bob Jones", "email": "bob@id4me.com" }
    ]
    ```
-3. Open `index.html` in any browser.
+
+3. Open `index.html` in your browser.
 
 ---
 
-## ⚠️ Important Notes
+## Azure Static Web Apps
 
-- **Do not deploy this publicly.** It is for internal administrative use only.
-- The generated script writes to the current user’s registry under:
-  - `HKCU:\Software\Microsoft\Office\16.0\Outlook`
-- If a profile named `OutlookAutodiscover` already exists, the script appends `_id4mecom` to avoid overwriting.
-- The checkbox **"Keep existing profiles"** is checked by default and should only be unchecked by advanced users.
+This project is compatible with Azure Static Web Apps.  
+Include the following `staticwebapp.config.json` in the root:
 
----
-
-## 📂 File Structure
-
-```
-├── index.html            # Main tool interface
-├── users.json            # Source of user accounts
-├── README.md             # You're here
-```
-
----
-
-## 🧯 Support & Maintenance
-
-This tool is maintained by the internal IT automation team.  
-For questions, contact: `support@id4me.com`.
-
----
-
-## 🧾 License
-
-This project is proprietary and not licensed for external distribution.
+```json
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*", "/css/*", "/js/*"]
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".ps1": "text/plain"
+  }
+}
 ```
 
 ---
 
-Want me to drop this directly into a `README.md` file for your repo?
+## File Structure
+
+```
+├── index.html                  # Main interface
+├── users.json                  # User definitions (not committed)
+├── staticwebapp.config.json    # Azure Static Web App config
+├── README.md
+```
+```
+
+Let me know if you'd like it committed as a file or styled for internal doc systems too.
