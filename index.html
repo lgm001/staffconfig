@@ -37,8 +37,8 @@
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
 
-  <label><input type="checkbox" id="keepProfile" checked> Keep existing Outlook profiles </label>
-  <div><strong style="color: red;">&#9888; DO NOT uncheck unless instructed</strong><</div>
+  <label><input type="checkbox" id="keepProfile" checked> Keep existing Outlook profiles <strong style="color: red;">&#9888; DO NOT uncheck unless instructed</strong></label>
+
   <button id="generateBtn" disabled>Generate PowerShell Script</button>
 
   <div id="instructions">
@@ -110,7 +110,9 @@ New-Item -Path $profPath -Force | Out-Null
 Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfile" -Value $profileName
 Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
 
-Write-Host "New profile '$profileName' created. Launch Outlook to complete Autodiscover setup."
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
+
+Write-Host "New profile '$profileName' created. Outlook will now prompt for a profile on launch."
 `;
 
       const blob = new Blob([psScript], { type: "text/plain" });
