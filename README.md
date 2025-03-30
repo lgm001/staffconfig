@@ -1,63 +1,38 @@
-# ID4me Outlook Profile Generator
 
-A secure internal-use tool to generate PowerShell scripts for Outlook profile setup using Autodiscover.
+PowerShell Script Output
+========================
 
+The generated `.ps1` script performs the following:
 
-## Features
+- Creates or modifies the registry key:
+  HKCU:\Software\Microsoft\Office\16.0\Outlook\AutoDiscover  
+  to enable `ZeroConfigExchange`.
 
-- Dropdown user selection from `users.json`
-- Email and display name autofill
-- Option to preserve existing Outlook profiles
-- PowerShell script generation for registry-based profile creation
-- Default profile name fallback to `_id4mecom` if one already exists
-- Prompts Outlook for profile selection on launch
+- Creates a new Outlook profile:
+  HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles\<ProfileName>
 
----
+- Sets the new profile as default by updating:
+  - DefaultProfile  
+  - DefaultProfileName
 
-## Local Development
+- Enables `PromptForProfile` so Outlook will prompt the user to choose a profile at launch.
 
-1. Clone the repository.
-2. Add a `users.json` file to the root directory:
+Profile Naming Logic
+--------------------
 
-   ```json
-   [
-     { "name": "Alice Smith", "email": "alice@id4me.com" },
-     { "name": "Bob Jones", "email": "bob@id4me.com" }
-   ]
-   ```
+- If a profile named `OutlookAutodiscover` does **not** already exist, it is used.
+- If it **does exist**, the fallback name will be:  
+  `OutlookAutodiscover_id4mecom`
 
-3. Open `index.html` in your browser.
+MIME Type Handling
+------------------
 
----
+To ensure the `.ps1` file is served as plaintext and not executed or blocked by the browser, this line is set in `staticwebapp.config.json`:
 
-## Azure Static Web Apps
+  ".ps1": "text/plain"
 
-This project is compatible with Azure Static Web Apps.  
-Include the following `staticwebapp.config.json` in the root:
+Important
+---------
 
-```json
-{
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/images/*", "/css/*", "/js/*"]
-  },
-  "mimeTypes": {
-    ".json": "application/json",
-    ".ps1": "text/plain"
-  }
-}
-```
-
----
-
-## File Structure
-
-```
-├── index.html                  # Main interface
-├── users.json                  # User definitions (not committed)
-├── staticwebapp.config.json    # Azure Static Web App config
-├── README.md
-```
-```
-
-Let me know if you'd like it committed as a file or styled for internal doc systems too.
+Running the script modifies the registry under the current user hive (HKCU).  
+It does **not** delete or remove existing profiles unless that behavior is explicitly added.
