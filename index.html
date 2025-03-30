@@ -37,7 +37,7 @@
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
 
-  <button id="generateBtn">Generate PowerShell Script</button>
+  <button id="generateBtn" disabled>Generate PowerShell Script</button>
 
   <div id="instructions">
     <h2>⚠️ Read Before Running</h2>
@@ -49,13 +49,23 @@
     <p>Then re-run the script.</p>
   </div>
 
-  <script>
+ <script>
+    const generateBtn = document.getElementById('generateBtn');
+    const emailInput = document.getElementById('userEmail');
+    const nameInput = document.getElementById('displayName');
+
+    function validateForm() {
+      const isValid = emailInput.value.trim() !== '' && nameInput.value.trim() !== '';
+      generateBtn.disabled = !isValid;
+    }
+
+    emailInput.addEventListener('input', validateForm);
+    nameInput.addEventListener('input', validateForm);
+
     fetch('users.json')
       .then(res => res.json())
       .then(users => {
         const select = document.getElementById('userSelect');
-        const emailInput = document.getElementById('userEmail');
-        const nameInput = document.getElementById('displayName');
 
         users.forEach(user => {
           const option = document.createElement('option');
@@ -68,12 +78,13 @@
           const selectedUser = users.find(u => u.email === select.value);
           emailInput.value = selectedUser.email;
           nameInput.value = selectedUser.name;
+          validateForm();
         });
       });
 
-    document.getElementById('generateBtn').addEventListener('click', () => {
-      const email = document.getElementById('userEmail').value;
-      const name = document.getElementById('displayName').value;
+    generateBtn.addEventListener('click', () => {
+      const email = emailInput.value;
+      const name = nameInput.value;
 
       const psScript = `
 $profileName = \"OutlookAutodiscover\"
@@ -104,3 +115,4 @@ Write-Host \"Profile '$profileName' set. Launch Outlook to complete Autodiscover
   </script>
 </body>
 </html>
+
