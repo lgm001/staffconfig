@@ -37,8 +37,8 @@
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
 
-  <label><input type="checkbox" id="keepProfile" checked> Keep existing Outlook profiles <strong style="color: red;">&#9888; DO NOT uncheck unless instructed</strong></label>
-
+  <label><input type="checkbox" id="keepProfile" checked> Keep existing Outlook profiles </label>
+  <div><strong style="color: red;">&#9888; DO NOT uncheck unless instructed</strong><</div>
   <button id="generateBtn" disabled>Generate PowerShell Script</button>
 
   <div id="instructions">
@@ -90,19 +90,19 @@
       const name = nameInput.value;
       const keepExisting = keepProfileCheckbox.checked;
 
-      const removeProfilesLogic = keepExisting ? '' : `
-Remove-Item -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles" -Recurse -Force
-`;
-
       const psScript = `
-$profileName = "OutlookAutodiscover"
+$baseProfileName = "OutlookAutodiscover"
 $userEmail = "${email}"
 $displayName = "${name}"
 
-${removeProfilesLogic}
 $regPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover"
 New-Item -Path $regPath -Force | Out-Null
 New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
+
+$profileName = $baseProfileName
+if (Test-Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles\$baseProfileName") {
+  $profileName = "${baseProfileName}_id4mecom"
+}
 
 $profPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$profileName"
 New-Item -Path $profPath -Force | Out-Null
@@ -110,7 +110,7 @@ New-Item -Path $profPath -Force | Out-Null
 Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfile" -Value $profileName
 Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
 
-Write-Host "Profile '$profileName' set. Launch Outlook to complete Autodiscover setup."
+Write-Host "New profile '$profileName' created. Launch Outlook to complete Autodiscover setup."
 `;
 
       const blob = new Blob([psScript], { type: "text/plain" });
