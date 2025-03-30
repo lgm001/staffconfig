@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Outlook Profile Generator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+
+        label, input {
+            display: block;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+
+        #instructions {
+            display: none;
+            margin-top: 2rem;
+            background: #f4f4f4;
+            padding: 1rem;
+            border-left: 4px solid #333;
+        }
+
+        pre {
+            background: #eee;
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Outlook Autodiscover Profile Generator</h1>
+
+    <label for="userEmail">User Email:</label>
+    <input type="email" id="userEmail" placeholder="user@domain.com">
+
+    <label for="displayName">Display Name:</label>
+    <input type="text" id="displayName" placeholder="Joe The User">
+
+    <button id="generateBtn">Generate PowerShell Script</button>
+
+    <div id="instructions">
+        <h2>⚠️ Read Before Running</h2>
+        <p>This PowerShell script modifies the Windows Registry to preconfigure Outlook for Autodiscover setup. It may trigger warnings depending on your system policy.</p>
+        <p><strong>To run:</strong></p>
+        <pre>Right-click the downloaded <code>.ps1</code> file → "Run with PowerShell"</pre>
+        <p>If blocked by security policy:</p>
+        <pre>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</pre>
+        <p>Then re-run the script.</p>
+    </div>
+
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            const email = document.getElementById('userEmail').value;
+            const name = document.getElementById('displayName').value;
+
+            const psScript = `
+$profileName = \"OutlookAutodiscover\"
+$userEmail = \"${email}\"
+$displayName = \"${name}\"
+
+$regPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover\"
+New-Item -Path $regPath -Force | Out-Null
+New-ItemProperty -Path $regPath -Name \"ZeroConfigExchange\" -Value 1 -PropertyType DWord -Force | Out-Null
+
+$profPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$profileName\"
+New-Item -Path $profPath -Force | Out-Null
+
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfile\" -Value $profileName
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfileName\" -Value $profileName
+
+Write-Host \"Profile '$profileName' set. Launch Outlook to complete Autodiscover setup.\"
+`;
+
+            const blob = new Blob([psScript], { type: "text/plain" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "generate_outlook_profile.ps1";
+            link.click();
+
+            document.getElementById('instructions').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
