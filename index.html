@@ -23,36 +23,7 @@
       border-radius: 5px;
       color: #856404;
     }
-    datalist {
-    max-height: 200px;
-    overflow-y: auto;
-    display: block;
-  }
-  .dropdown-wrapper {
-    position: relative;
-  }
-  .custom-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    max-height: 200px;
-    overflow-y: auto;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    z-index: 10;
-  }
-  .custom-dropdown li {
-    padding: 0.5rem;
-    cursor: pointer;
-  }
-  .custom-dropdown li:hover {
-    background: #f0f0f0;
-  }
-</style>
+  </style>
 </head>
 <body>
   <h1>ID4me Outlook Profile Generator</h1>
@@ -61,11 +32,13 @@
     <strong>Notice:</strong> This tool is intended for authorized internal use only. If you were not given access to this site through official channels, please do not proceed.
   </div>
 
+  <label for="userSelect">Select User:</label>
+  <select id="userSelect">
+    <option value="" disabled selected>Select a user</option>
+  </select>
+
   <label for="userEmail">User Email:</label>
-  <div class="dropdown-wrapper">
-    <input type="email" id="userEmail" placeholder="user@domain.com" autocomplete="off">
-    <ul id="customDropdown" class="custom-dropdown"></ul>
-  </div>
+  <input type="email" id="userEmail" placeholder="user@domain.com">
 
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
@@ -83,62 +56,56 @@
     <p>The current Outlook profiles registry hive will be backed up to your Desktop as <code>OutlookProfileBackup.reg</code>.</p>
   </div>
 
- <script>
-    const generateBtn = document.getElementById('generateBtn');
-    const emailInput = document.getElementById('userEmail');
-    const nameInput = document.getElementById('displayName');
+<script>
+  const generateBtn = document.getElementById('generateBtn');
+  const emailInput = document.getElementById('userEmail');
+  const nameInput = document.getElementById('displayName');
+  const userSelect = document.getElementById('userSelect');
 
-    function validateForm() {
-      const isValid = emailInput.value.trim() !== '' && nameInput.value.trim() !== '';
-      generateBtn.disabled = !isValid;
-    }
+  function validateForm() {
+    const isValid = emailInput.value.trim() !== '' && nameInput.value.trim() !== '';
+    generateBtn.disabled = !isValid;
+  }
 
-    emailInput.addEventListener('input', validateForm);
-    nameInput.addEventListener('input', validateForm);
+  emailInput.addEventListener('input', validateForm);
+  nameInput.addEventListener('input', validateForm);
 
-    fetch('users.json')
-      .then(res => res.json())
-      .then(users => {
-        console.log(`Loaded users.json: ${users.length} entries`);
-        const dropdown = document.getElementById('customDropdown');
-
-        emailInput.addEventListener('input', () => {
-          const query = emailInput.value.toLowerCase();
-          dropdown.innerHTML = '';
-          const matches = users.filter(u => `${u.name} <${u.email}>`.toLowerCase().includes(query));
-
-          matches.forEach(user => {
-            const li = document.createElement('li');
-            li.textContent = `${user.name} <${user.email}>`;
-            li.addEventListener('click', () => {
-              emailInput.value = user.email;
-              nameInput.value = user.name;
-              dropdown.innerHTML = '';
-              generateBtn.disabled = false;
-            });
-            dropdown.appendChild(li);
-          });
-
-          if (!matches.length) {
-  nameInput.value = '';
-  validateForm();
-}
-        });
-      });
+  fetch('users.json')
+    .then(res => res.json())
+    .then(users => {
+      console.log(`Loaded users.json: ${users.length} entries`);
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.email;
+        option.textContent = `${user.name} <${user.email}>`;
+        userSelect.appendChild(option);
       });
 
-    generateBtn.addEventListener('click', () => {
-      const email = emailInput.value;
-      const name = nameInput.value;
+      userSelect.addEventListener('change', () => {
+        const selectedUser = users.find(u => u.email === userSelect.value);
+        if (selectedUser) {
+          emailInput.value = selectedUser.email;
+          nameInput.value = selectedUser.name;
+        } else {
+          emailInput.value = '';
+          nameInput.value = '';
+        }
+        validateForm();
+      });
+    });
 
-      const psScript = `
+  generateBtn.addEventListener('click', () => {
+    const email = emailInput.value;
+    const name = nameInput.value;
+
+    const psScript = `
 $baseProfileName = \"OutlookAutodiscover\"
 $userEmail = \"${email}\"
 $displayName = \"${name}\"
 
 # Backup current profiles hive
-$backupPath = \"$env:USERPROFILE\Desktop\OutlookProfileBackup.reg\"
-reg export \"HKCU\Software\Microsoft\Office\16.0\Outlook\Profiles\" \"$backupPath\" /y
+$backupPath = \"$env:USERPROFILE\\Desktop\\OutlookProfileBackup.reg\"
+reg export \"HKCU\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\" \"$backupPath\" /y
 Write-Host \"Backup saved to $backupPath\"
 
 $regPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover\"
@@ -157,14 +124,14 @@ Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Na
 Write-Host \"Profile '$profileName' will be created automatically by Outlook using Autodiscover.\"
 `;
 
-      const blob = new Blob([psScript], { type: "text/plain" });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = "generate_outlook_profile.ps1";
-      link.click();
+    const blob = new Blob([psScript], { type: "text/plain" });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = "generate_outlook_profile.ps1";
+    link.click();
 
-      document.getElementById('instructions').style.display = 'block';
-    });
-  </script>
+    document.getElementById('instructions').style.display = 'block';
+  });
+</script>
 </body>
 </html>
