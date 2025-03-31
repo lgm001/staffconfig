@@ -63,6 +63,22 @@
     emailInput.addEventListener('input', validateForm);
     nameInput.addEventListener('input', validateForm);
 
+    // Auto-fill fields from users.json if match found
+fetch('users.json')
+  .then(res => res.json())
+  .then(users => {
+    const emailField = document.getElementById('userEmail');
+    const nameField = document.getElementById('displayName');
+
+    emailField.addEventListener('blur', () => {
+      const match = users.find(u => u.email.toLowerCase() === emailField.value.toLowerCase());
+      if (match) {
+        nameField.value = match.name;
+        validateForm();
+      }
+    });
+  });
+
     generateBtn.addEventListener('click', () => {
       const email = emailInput.value;
       const name = nameInput.value;
