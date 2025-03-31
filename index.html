@@ -23,22 +23,6 @@
       border-radius: 5px;
       color: #856404;
     }
-    .checkbox-block {
-      display: inline-block;
-      margin-bottom: 1rem;
-    }
-    .checkbox-block input[type="checkbox"],
-    .checkbox-block label {
-      display: inline-block;
-      vertical-align: middle;
-      margin: 0;
-    }
-    .checkbox-warning {
-      display: inline-block;
-      margin-left: 1.5rem;
-      color: red;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -48,22 +32,11 @@
     <strong>Notice:</strong> This tool is intended for authorized internal use only. If you were not given access to this site through official channels, please do not proceed.
   </div>
 
-  <label for="userSelect">Select your user:</label>
-  <select id="userSelect">
-    <option value="" disabled selected>Select a user</option>
-  </select>
-
   <label for="userEmail">User Email:</label>
   <input type="email" id="userEmail" placeholder="user@domain.com">
 
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
-
-  <div class="checkbox-block">
-  <input type="checkbox" id="keepProfile" checked>
-  <label for="keepProfile">Keep existing Outlook profiles</label>
-  <div class="checkbox-warning">&#9888; DO NOT uncheck unless instructed</div>
-</div>
 
   <button id="generateBtn" disabled>Generate PowerShell Script</button>
 
@@ -81,7 +54,6 @@
     const generateBtn = document.getElementById('generateBtn');
     const emailInput = document.getElementById('userEmail');
     const nameInput = document.getElementById('displayName');
-    const keepProfileCheckbox = document.getElementById('keepProfile');
 
     function validateForm() {
       const isValid = emailInput.value.trim() !== '' && nameInput.value.trim() !== '';
@@ -91,30 +63,9 @@
     emailInput.addEventListener('input', validateForm);
     nameInput.addEventListener('input', validateForm);
 
-    fetch('users.json')
-      .then(res => res.json())
-      .then(users => {
-        const select = document.getElementById('userSelect');
-
-        users.forEach(user => {
-          const option = document.createElement('option');
-          option.value = user.email;
-          option.textContent = user.name;
-          select.appendChild(option);
-        });
-
-        select.addEventListener('change', () => {
-          const selectedUser = users.find(u => u.email === select.value);
-          emailInput.value = selectedUser.email;
-          nameInput.value = selectedUser.name;
-          validateForm();
-        });
-      });
-
     generateBtn.addEventListener('click', () => {
       const email = emailInput.value;
       const name = nameInput.value;
-      const keepExisting = keepProfileCheckbox.checked;
 
       const psScript = `
 $baseProfileName = "OutlookAutodiscover"
@@ -126,20 +77,15 @@ New-Item -Path $regPath -Force | Out-Null
 New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
 
 $profileName = $baseProfileName
-if (Test-Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName")
-{
+if (Test-Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName") {
   $profileName = "${baseProfileName}_id4mecom"
 }
 
-$profPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$profileName"
-New-Item -Path $profPath -Force | Out-Null
-
 Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfile" -Value $profileName
 Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
 
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
-
-Write-Host "New profile '$profileName' created. Outlook will now prompt for a profile on launch."
+Write-Host "Profile '$profileName' will be created automatically by Outlook using Autodiscover."
 `;
 
       const blob = new Blob([psScript], { type: "text/plain" });
