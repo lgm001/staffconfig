@@ -101,50 +101,47 @@
 
     const psScript = `
 Write-Host "=== ID4ME Outlook Tool ==="
-$baseProfileName = "OutlookAutodiscover"
-$userEmail = "${email}"
-$displayName = "${name}"
+$baseProfileName = \"OutlookAutodiscover\"
+$userEmail = \"${email}\"
+$displayName = \"${name}\"
 
 # Backup current profiles hive (if exists)
-$profilesKey = "HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles"
+$profilesKey = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\"
 if (Test-Path $profilesKey) {
-  $backupPath = "$env:USERPROFILE\Desktop\OutlookProfileBackup.reg"
-  reg export "HKCU\Software\Microsoft\Office\16.0\Outlook\Profiles" "$backupPath" /y
-  Write-Host "Backup saved to $backupPath"
+  $backupPath = \"$env:USERPROFILE\\Desktop\\OutlookProfileBackup.reg\"
+  reg export \"HKCU\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\" \"$backupPath\" /y
+  Write-Host \"Backup saved to $backupPath\"
 } else {
-  Write-Host "No existing Outlook profile to back up."
+  Write-Host \"No existing Outlook profile to back up.\"
 }
 
-$regPath = "HKCU:\Software\Microsoft\Office\16.0\Outlook\AutoDiscover"
+$regPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover\"
 New-Item -Path $regPath -Force | Out-Null
-New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
-New-ItemProperty -Path $regPath -Name "UserEmail" -Value $userEmail -PropertyType String -Force | Out-Null
+New-ItemProperty -Path $regPath -Name \"ZeroConfigExchange\" -Value 1 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -Path $regPath -Name \"UserEmail\" -Value $userEmail -PropertyType String -Force | Out-Null
 
 # Use existing profile if one exists
-$existingProfile = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "DefaultProfile" -ErrorAction SilentlyContinue
+$existingProfile = Get-ItemPropertyValue -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfile\" -ErrorAction SilentlyContinue
 if ($existingProfile) {
   $profileName = $existingProfile
-  Write-Host "Using existing default profile: $profileName"
-
-
-
+  Write-Host \"Using existing default profile: $profileName\"
 } else {
   $profileName = $baseProfileName
-  Write-Host "No default profile found, using: $profileName"
+  Write-Host \"No default profile found, using: $profileName\"
 }
 
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "DefaultProfile" -Value $profileName
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "DefaultProfileName" -Value $profileName
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfile\" -Value $profileName
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfileName\" -Value $profileName
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"PromptForProfile\" -Value 1 -Type DWord
 
-Write-Host "Profile '$profileName' set. Attempting to launch Outlook..."
+Write-Host \"Profile '$profileName' set. Attempting to launch Outlook...\"
 
 $outlookPaths = @(
-  "$env:LOCALAPPDATA\Microsoft\WindowsApps\outlook.exe",
-  "$env:ProgramFiles\Microsoft Office\root\Office16\OUTLOOK.EXE",
-  "$env:ProgramFiles(x86)\Microsoft Office\root\Office16\OUTLOOK.EXE",
-  "$env:ProgramFiles\Microsoft Office\Office16\OUTLOOK.EXE",
-  "$env:ProgramFiles(x86)\Microsoft Office\Office16\OUTLOOK.EXE"
+  \"$env:LOCALAPPDATA\\Microsoft\\WindowsApps\\outlook.exe\",
+  \"$env:ProgramFiles\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE\",
+  \"$env:ProgramFiles(x86)\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE\",
+  \"$env:ProgramFiles\\Microsoft Office\\Office16\\OUTLOOK.EXE\",
+  \"$env:ProgramFiles(x86)\\Microsoft Office\\Office16\\OUTLOOK.EXE\"
 )
 
 foreach ($path in $outlookPaths) {
@@ -154,8 +151,8 @@ foreach ($path in $outlookPaths) {
   }
 }
 
-Write-Host "If Outlook did not start, please launch it manually."
-Write-Host "If prompted, enter credentials for $userEmail to complete mailbox binding."
+Write-Host \"If Outlook did not start, please launch it manually.\"
+Write-Host \"If prompted, enter credentials for $userEmail to complete mailbox binding.\"
 Pause
 `;
 
@@ -168,6 +165,6 @@ Pause
     document.getElementById('instructions').style.display = 'block';
   });
 </script>
-<footer style="text-align: center; margin-top: 4rem; font-weight: bold;">Herd Edition</footer>
+<footer style="text-align: center; margin-top: 4rem; font-weight: bold;">Herd 2.0 Edition</footer>
 </body>
 </html>
