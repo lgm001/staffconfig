@@ -23,7 +23,36 @@
       border-radius: 5px;
       color: #856404;
     }
-  </style>
+    datalist {
+    max-height: 200px;
+    overflow-y: auto;
+    display: block;
+  }
+  .dropdown-wrapper {
+    position: relative;
+  }
+  .custom-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
+  }
+  .custom-dropdown li {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+  .custom-dropdown li:hover {
+    background: #f0f0f0;
+  }
+</style>
 </head>
 <body>
   <h1>ID4me Outlook Profile Generator</h1>
@@ -33,8 +62,10 @@
   </div>
 
   <label for="userEmail">User Email:</label>
-  <input type="email" id="userEmail" list="userList" placeholder="user@domain.com">
-  <datalist id="userList"></datalist>
+  <div class="dropdown-wrapper">
+    <input type="email" id="userEmail" placeholder="user@domain.com" autocomplete="off">
+    <ul id="customDropdown" class="custom-dropdown"></ul>
+  </div>
 
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
@@ -69,26 +100,31 @@
       .then(res => res.json())
       .then(users => {
         console.log(`Loaded users.json: ${users.length} entries`);
-        const dataList = document.getElementById('userList');
+        const dropdown = document.getElementById('customDropdown');
 
-        users.forEach(user => {
-          const option = document.createElement('option');
-          option.value = `${user.name} <${user.email}>`;
-          dataList.appendChild(option);
-        });
+        emailInput.addEventListener('input', () => {
+          const query = emailInput.value.toLowerCase();
+          dropdown.innerHTML = '';
+          const matches = users.filter(u => `${u.name} <${u.email}>`.toLowerCase().includes(query));
 
-        emailInput.addEventListener('change', () => {
+          matches.forEach(user => {
+            const li = document.createElement('li');
+            li.textContent = `${user.name} <${user.email}>`;
+            li.addEventListener('click', () => {
+              emailInput.value = user.email;
+              nameInput.value = user.name;
+              dropdown.innerHTML = '';
+              generateBtn.disabled = false;
+            });
+            dropdown.appendChild(li);
+          });
+
+          if (!matches.length) {
   nameInput.value = '';
-  const match = users.find(u => `${u.name} <${u.email}>`.toLowerCase() === emailInput.value.toLowerCase());
-  if (match) {
-    emailInput.value = match.email;
-    nameInput.value = match.name;
-    generateBtn.disabled = false;
-  } else {
-    nameInput.value = '* no match *';
-    generateBtn.disabled = true;
-  }
-});
+  validateForm();
+}
+        });
+      });
       });
 
     generateBtn.addEventListener('click', () => {
