@@ -33,7 +33,8 @@
   </div>
 
   <label for="userEmail">User Email:</label>
-  <input type="email" id="userEmail" placeholder="user@domain.com">
+  <input type="email" id="userEmail" list="userList" placeholder="user@domain.com">
+  <datalist id="userList"></datalist>
 
   <label for="displayName">Display Name:</label>
   <input type="text" id="displayName" placeholder="Joe The User">
@@ -63,11 +64,28 @@
     emailInput.addEventListener('input', validateForm);
     nameInput.addEventListener('input', validateForm);
 
-    // Auto-fill fields from users.json if match found
-fetch('users.json')
+    fetch('users.json')
   .then(res => res.json())
   .then(users => {
     const emailField = document.getElementById('userEmail');
+    const nameField = document.getElementById('displayName');
+    const dataList = document.getElementById('userList');
+
+    users.forEach(user => {
+      const option = document.createElement('option');
+      option.value = user.email;
+      option.label = user.name;
+      dataList.appendChild(option);
+    });
+
+    emailField.addEventListener('input', () => {
+      const match = users.find(u => u.email.toLowerCase() === emailField.value.toLowerCase());
+      if (match) {
+        nameField.value = match.name;
+      }
+      validateForm();
+    });
+  });
     const nameField = document.getElementById('displayName');
 
     emailField.addEventListener('blur', () => {
