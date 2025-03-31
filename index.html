@@ -43,12 +43,13 @@
 
   <div id="instructions">
     <h2>⚠️ Read Before Running</h2>
-    <p>This PowerShell script modifies the Windows Registry to preconfigure Outlook for Autodiscover setup. It may trigger warnings depending on your system policy.</p>
+    <p>This PowerShell script modifies the Windows Registry to preconfigure Outlook for Autodiscover setup. It also backs up your current Outlook profile configuration just in case you need to restore it later.</p>
     <p><strong>To run:</strong></p>
     <pre>Right-click the downloaded <code>.ps1</code> file → "Run with PowerShell"</pre>
     <p>If blocked by security policy:</p>
     <pre>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</pre>
     <p>Then re-run the script.</p>
+    <p>The current Outlook profiles registry hive will be backed up to your Desktop as <code>OutlookProfileBackup.reg</code>.</p>
   </div>
 
  <script>
@@ -98,6 +99,11 @@
 $baseProfileName = \"OutlookAutodiscover\"
 $userEmail = \"${email}\"
 $displayName = \"${name}\"
+
+# Backup current profiles hive
+$backupPath = \"$env:USERPROFILE\Desktop\OutlookProfileBackup.reg\"
+reg export \"HKCU\Software\Microsoft\Office\16.0\Outlook\Profiles\" \"$backupPath\" /y
+Write-Host \"Backup saved to $backupPath\"
 
 $regPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover\"
 New-Item -Path $regPath -Force | Out-Null
