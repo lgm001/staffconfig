@@ -77,13 +77,17 @@
         });
 
         emailInput.addEventListener('change', () => {
-          const match = users.find(u => `${u.name} <${u.email}>`.toLowerCase() === emailInput.value.toLowerCase());
-          if (match) {
-            emailInput.value = match.email;
-            nameInput.value = match.name;
-          }
-          validateForm();
-        });
+  nameInput.value = '';
+  const match = users.find(u => `${u.name} <${u.email}>`.toLowerCase() === emailInput.value.toLowerCase());
+  if (match) {
+    emailInput.value = match.email;
+    nameInput.value = match.name;
+    generateBtn.disabled = false;
+  } else {
+    nameInput.value = '* no match *';
+    generateBtn.disabled = true;
+  }
+});
       });
 
     generateBtn.addEventListener('click', () => {
@@ -91,24 +95,24 @@
       const name = nameInput.value;
 
       const psScript = `
-$baseProfileName = "OutlookAutodiscover"
-$userEmail = "${email}"
-$displayName = "${name}"
+$baseProfileName = \"OutlookAutodiscover\"
+$userEmail = \"${email}\"
+$displayName = \"${name}\"
 
-$regPath = "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook\\AutoDiscover"
+$regPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover\"
 New-Item -Path $regPath -Force | Out-Null
-New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -Path $regPath -Name \"ZeroConfigExchange\" -Value 1 -PropertyType DWord -Force | Out-Null
 
 $profileName = $baseProfileName
-if (Test-Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook\\Profiles\\$baseProfileName") {
-  $profileName = "${baseProfileName}_id4mecom"
+if (Test-Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName\") {
+  $profileName = \"${email.replace(/@.*/, '').replace(/[^a-zA-Z0-9]/g, '')}_id4mecom\"
 }
 
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook" -Name "DefaultProfile" -Value $profileName
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfile\" -Value $profileName
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfileName\" -Value $profileName
+Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"PromptForProfile\" -Value 1 -Type DWord
 
-Write-Host "Profile '$profileName' will be created automatically by Outlook using Autodiscover."
+Write-Host \"Profile '$profileName' will be created automatically by Outlook using Autodiscover.\"
 `;
 
       const blob = new Blob([psScript], { type: "text/plain" });
