@@ -126,7 +126,8 @@ New-Item -Path $regPath -Force | Out-Null
 New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
 
 $profileName = $baseProfileName
-if (Test-Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles\$baseProfileName") {
+if (Test-Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName")
+{
   $profileName = "${baseProfileName}_id4mecom"
 }
 
