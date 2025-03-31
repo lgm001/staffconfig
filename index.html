@@ -67,16 +67,26 @@
     fetch('users.json')
   .then(res => res.json())
   .then(users => {
+    console.log(`Loaded users.json: ${users.length} entries`);
     const emailField = document.getElementById('userEmail');
     const nameField = document.getElementById('displayName');
     const dataList = document.getElementById('userList');
 
     users.forEach(user => {
       const option = document.createElement('option');
-      option.value = user.email;
-      option.label = user.name;
+      option.value = `${user.name} <${user.email}>`;
       dataList.appendChild(option);
     });
+
+    emailField.addEventListener('change', () => {
+      const match = users.find(u => `${u.name} <${u.email}>`.toLowerCase() === emailField.value.toLowerCase());
+      if (match) {
+        emailField.value = match.email;
+        nameField.value = match.name;
+      }
+      validateForm();
+    });
+  });
 
     emailField.addEventListener('input', () => {
       const match = users.find(u => u.email.toLowerCase() === emailField.value.toLowerCase());
@@ -86,15 +96,7 @@
       validateForm();
     });
   });
-    const nameField = document.getElementById('displayName');
-
-    emailField.addEventListener('blur', () => {
-      const match = users.find(u => u.email.toLowerCase() === emailField.value.toLowerCase());
-      if (match) {
-        nameField.value = match.name;
-        validateForm();
-      }
-    });
+    
   });
 
     generateBtn.addEventListener('click', () => {
