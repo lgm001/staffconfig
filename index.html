@@ -100,6 +100,7 @@
     const localProfileId = email.replace(/@.*/, '').replace(/[^a-zA-Z0-9]/g, '') + '_id4mecom';
 
     const psScript = `
+Write-Host "=== ID4ME Outlook Tool ==="
 $baseProfileName = "OutlookAutodiscover"
 $userEmail = "${email}"
 $displayName = "${name}"
