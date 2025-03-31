@@ -106,45 +106,45 @@ $userEmail = "${email}"
 $displayName = "${name}"
 
 # Backup current profiles hive (if exists)
-$profilesKey = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles"
+$profilesKey = "HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles"
 if (Test-Path $profilesKey) {
-  $backupPath = "$env:USERPROFILE\\Desktop\\OutlookProfileBackup.reg"
-  reg export "HKCU\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles" "$backupPath" /y
+  $backupPath = "$env:USERPROFILE\Desktop\OutlookProfileBackup.reg"
+  reg export "HKCU\Software\Microsoft\Office\16.0\Outlook\Profiles" "$backupPath" /y
   Write-Host "Backup saved to $backupPath"
 } else {
   Write-Host "No existing Outlook profile to back up."
 }
 
-$regPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover"
+$regPath = "HKCU:\Software\Microsoft\Office\16.0\Outlook\AutoDiscover"
 New-Item -Path $regPath -Force | Out-Null
 New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
 New-ItemProperty -Path $regPath -Name "UserEmail" -Value $userEmail -PropertyType String -Force | Out-Null
 
-$profileName = $baseProfileName
-if (Test-Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName") {
-  $profileName = "${localProfileId}"
-}
+# Use existing profile if one exists
+$existingProfile = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "DefaultProfile" -ErrorAction SilentlyContinue
+if ($existingProfile) {
+  $profileName = $existingProfile
+  Write-Host "Using existing default profile: $profileName"
 
-$profPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$profileName"
-if (-not (Test-Path $profPath)) {
-  New-Item -Path $profPath -Force | Out-Null
-  Write-Host "Created new profile registry path: $profPath"
+
+
 } else {
-  Write-Host "Profile path exists: $profPath"
+  $profileName = $baseProfileName
+  Write-Host "No default profile found, using: $profileName"
 }
 
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfile" -Value $profileName
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "DefaultProfile" -Value $profileName
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "DefaultProfileName" -Value $profileName
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
 
-Write-Host "Profile '$profileName' is ready. Attempting to launch Outlook..."
+Write-Host "Profile '$profileName' set. Attempting to launch Outlook..."
 
 $outlookPaths = @(
-  "$env:LOCALAPPDATA\\Microsoft\\WindowsApps\\outlook.exe",
-  "$env:ProgramFiles\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
-  "$env:ProgramFiles(x86)\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
-  "$env:ProgramFiles\\Microsoft Office\\Office16\\OUTLOOK.EXE",
-  "$env:ProgramFiles(x86)\\Microsoft Office\\Office16\\OUTLOOK.EXE"
+  "$env:LOCALAPPDATA\Microsoft\WindowsApps\outlook.exe",
+  "$env:ProgramFiles\Microsoft Office\root\Office16\OUTLOOK.EXE",
+  "$env:ProgramFiles(x86)\Microsoft Office\root\Office16\OUTLOOK.EXE",
+  "$env:ProgramFiles\Microsoft Office\Office16\OUTLOOK.EXE",
+  "$env:ProgramFiles(x86)\Microsoft Office\Office16\OUTLOOK.EXE"
 )
 
 foreach ($path in $outlookPaths) {
@@ -168,5 +168,6 @@ Pause
     document.getElementById('instructions').style.display = 'block';
   });
 </script>
+<footer style="text-align: center; margin-top: 4rem; font-weight: bold;">Herd Edition</footer>
 </body>
 </html>
