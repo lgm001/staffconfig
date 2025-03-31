@@ -97,31 +97,65 @@
   generateBtn.addEventListener('click', () => {
     const email = emailInput.value;
     const name = nameInput.value;
+    const localProfileId = email.replace(/@.*/, '').replace(/[^a-zA-Z0-9]/g, '') + '_id4mecom';
 
     const psScript = `
-$baseProfileName = \"OutlookAutodiscover\"
-$userEmail = \"${email}\"
-$displayName = \"${name}\"
+$baseProfileName = "OutlookAutodiscover"
+$userEmail = "${email}"
+$displayName = "${name}"
 
-# Backup current profiles hive
-$backupPath = \"$env:USERPROFILE\\Desktop\\OutlookProfileBackup.reg\"
-reg export \"HKCU\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\" \"$backupPath\" /y
-Write-Host \"Backup saved to $backupPath\"
-
-$regPath = \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover\"
-New-Item -Path $regPath -Force | Out-Null
-New-ItemProperty -Path $regPath -Name \"ZeroConfigExchange\" -Value 1 -PropertyType DWord -Force | Out-Null
-
-$profileName = $baseProfileName
-if (Test-Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName\") {
-  $profileName = \"${email.replace(/@.*/, '').replace(/[^a-zA-Z0-9]/g, '')}_id4mecom\"
+# Backup current profiles hive (if exists)
+$profilesKey = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles"
+if (Test-Path $profilesKey) {
+  $backupPath = "$env:USERPROFILE\\Desktop\\OutlookProfileBackup.reg"
+  reg export "HKCU\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles" "$backupPath" /y
+  Write-Host "Backup saved to $backupPath"
+} else {
+  Write-Host "No existing Outlook profile to back up."
 }
 
-Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfile\" -Value $profileName
-Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"DefaultProfileName\" -Value $profileName
-Set-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\" -Name \"PromptForProfile\" -Value 1 -Type DWord
+$regPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover"
+New-Item -Path $regPath -Force | Out-Null
+New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -Path $regPath -Name "UserEmail" -Value $userEmail -PropertyType String -Force | Out-Null
 
-Write-Host \"Profile '$profileName' will be created automatically by Outlook using Autodiscover.\"
+$profileName = $baseProfileName
+if (Test-Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName") {
+  $profileName = "${localProfileId}"
+}
+
+$profPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$profileName"
+if (-not (Test-Path $profPath)) {
+  New-Item -Path $profPath -Force | Out-Null
+  Write-Host "Created new profile registry path: $profPath"
+} else {
+  Write-Host "Profile path exists: $profPath"
+}
+
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfile" -Value $profileName
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
+
+Write-Host "Profile '$profileName' is ready. Attempting to launch Outlook..."
+
+$outlookPaths = @(
+  "$env:LOCALAPPDATA\\Microsoft\\WindowsApps\\outlook.exe",
+  "$env:ProgramFiles\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
+  "$env:ProgramFiles(x86)\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
+  "$env:ProgramFiles\\Microsoft Office\\Office16\\OUTLOOK.EXE",
+  "$env:ProgramFiles(x86)\\Microsoft Office\\Office16\\OUTLOOK.EXE"
+)
+
+foreach ($path in $outlookPaths) {
+  if (Test-Path $path) {
+    Start-Process $path
+    break
+  }
+}
+
+Write-Host "If Outlook did not start, please launch it manually."
+Write-Host "If prompted, enter credentials for $userEmail to complete mailbox binding."
+Pause
 `;
 
     const blob = new Blob([psScript], { type: "text/plain" });
