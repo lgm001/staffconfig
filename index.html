@@ -65,39 +65,26 @@
     nameInput.addEventListener('input', validateForm);
 
     fetch('users.json')
-  .then(res => res.json())
-  .then(users => {
-    console.log(`Loaded users.json: ${users.length} entries`);
-    const emailField = document.getElementById('userEmail');
-    const nameField = document.getElementById('displayName');
-    const dataList = document.getElementById('userList');
+      .then(res => res.json())
+      .then(users => {
+        console.log(`Loaded users.json: ${users.length} entries`);
+        const dataList = document.getElementById('userList');
 
-    users.forEach(user => {
-      const option = document.createElement('option');
-      option.value = `${user.name} <${user.email}>`;
-      dataList.appendChild(option);
-    });
+        users.forEach(user => {
+          const option = document.createElement('option');
+          option.value = `${user.name} <${user.email}>`;
+          dataList.appendChild(option);
+        });
 
-    emailField.addEventListener('change', () => {
-      const match = users.find(u => `${u.name} <${u.email}>`.toLowerCase() === emailField.value.toLowerCase());
-      if (match) {
-        emailField.value = match.email;
-        nameField.value = match.name;
-      }
-      validateForm();
-    });
-  });
-
-    emailField.addEventListener('input', () => {
-      const match = users.find(u => u.email.toLowerCase() === emailField.value.toLowerCase());
-      if (match) {
-        nameField.value = match.name;
-      }
-      validateForm();
-    });
-  });
-    
-  });
+        emailInput.addEventListener('change', () => {
+          const match = users.find(u => `${u.name} <${u.email}>`.toLowerCase() === emailInput.value.toLowerCase());
+          if (match) {
+            emailInput.value = match.email;
+            nameInput.value = match.name;
+          }
+          validateForm();
+        });
+      });
 
     generateBtn.addEventListener('click', () => {
       const email = emailInput.value;
@@ -108,18 +95,18 @@ $baseProfileName = "OutlookAutodiscover"
 $userEmail = "${email}"
 $displayName = "${name}"
 
-$regPath = "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\AutoDiscover"
+$regPath = "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook\\AutoDiscover"
 New-Item -Path $regPath -Force | Out-Null
 New-ItemProperty -Path $regPath -Name "ZeroConfigExchange" -Value 1 -PropertyType DWord -Force | Out-Null
 
 $profileName = $baseProfileName
-if (Test-Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook\\Profiles\\$baseProfileName") {
+if (Test-Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook\\Profiles\\$baseProfileName") {
   $profileName = "${baseProfileName}_id4mecom"
 }
 
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfile" -Value $profileName
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
-Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\\16.0\\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook" -Name "DefaultProfile" -Value $profileName
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook" -Name "DefaultProfileName" -Value $profileName
+Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Office\.0\\Outlook" -Name "PromptForProfile" -Value 1 -Type DWord
 
 Write-Host "Profile '$profileName' will be created automatically by Outlook using Autodiscover."
 `;
